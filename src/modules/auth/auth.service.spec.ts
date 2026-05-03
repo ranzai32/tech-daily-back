@@ -13,6 +13,10 @@ const mockUser: User = {
   passwordHash: '',
   skillLevel: SkillLevel.Beginner,
   fullName: null,
+  notificationFrequency: 'daily',
+  notificationTime: '09:00',
+  streakVisible: true,
+  fcmToken: null,
   createdAt: new Date('2026-01-01'),
   updatedAt: new Date('2026-01-01'),
 };

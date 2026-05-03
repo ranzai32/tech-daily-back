@@ -1,3 +1,4 @@
+import { join } from 'path';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -17,14 +18,21 @@ import { ConversionModule } from './modules/conversion/conversion.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
-      useFactory: () => ({
-        type: 'postgres',
-        url: process.env.DATABASE_URL,
-        autoLoadEntities: true,
-        synchronize: process.env.NODE_ENV !== 'production',
-        migrations: ['dist/migrations/*{.js}'],
-        migrationsRun: process.env.NODE_ENV === 'production',
-      }),
+      useFactory: () => {
+        const nodeEnv = process.env.NODE_ENV ?? 'development';
+        const isProd = nodeEnv === 'production';
+        const isTest = nodeEnv === 'test';
+        // synchronize + Postgres enums often breaks (e.g. skill_level_enum_old still referenced).
+        // E2e and CI should use an existing schema from migrations, not live sync.
+        return {
+          type: 'postgres',
+          url: process.env.DATABASE_URL,
+          autoLoadEntities: true,
+          synchronize: !isProd && !isTest,
+          migrations: [join(__dirname, 'migrations', '*.js')],
+          migrationsRun: isProd,
+        };
+      },
     }),
     BullModule.forRootAsync({
       useFactory: () => ({

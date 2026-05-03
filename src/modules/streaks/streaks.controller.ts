@@ -11,11 +11,12 @@ export class StreaksController {
 
   @Get('me')
   getMe(@CurrentUser() user: User) {
-    return this.streaksService.getByUser(user.id);
+    return this.streaksService.getMePayload(user.id);
   }
 
   @Post('me/update')
-  update(@CurrentUser() user: User) {
-    return this.streaksService.updateStreak(user.id);
+  async update(@CurrentUser() user: User) {
+    await this.streaksService.updateStreak(user.id);
+    return this.streaksService.getMePayload(user.id);
   }
 }

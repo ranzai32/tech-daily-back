@@ -1,2 +1,1 @@
-export const CURATION_QUEUE = 'curation';
-export const REVIEW_QUEUE = 'review';
+export const DAILY_CURATION_QUEUE = 'daily-curation';

@@ -1,9 +1,19 @@
-import { Controller, Get, Post, Param, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { IsNumber, IsUUID, IsString, Min, Max } from 'class-validator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { FlashcardsService } from './flashcards.service';
 import { User } from '../users/user.entity';
+import { CompletedFlashcardsQueryDto } from './dto/completed-flashcards-query.dto';
 
 class CreateFlashcardDto {
   @IsUUID()
@@ -28,14 +38,35 @@ class ReviewFlashcardDto {
 export class FlashcardsController {
   constructor(private readonly flashcardsService: FlashcardsService) {}
 
-  @Get()
-  getAll(@CurrentUser() user: User) {
-    return this.flashcardsService.getByUser(user.id);
-  }
-
   @Get('due')
   getDue(@CurrentUser() user: User) {
     return this.flashcardsService.getDueForReview(user.id);
+  }
+
+  /** Карточки из пройденных уроков (по одной на страницу по умолчанию). */
+  @Get('from-completed')
+  getFromCompleted(
+    @CurrentUser() user: User,
+    @Query() query: CompletedFlashcardsQueryDto,
+  ) {
+    return this.flashcardsService.getFlashcardsFromCompletedLessonsPaginated(
+      user.id,
+      query.page,
+      query.limit,
+    );
+  }
+
+  @Get(':lessonId')
+  getForLesson(
+    @CurrentUser() user: User,
+    @Param('lessonId', ParseUUIDPipe) lessonId: string,
+  ) {
+    return this.flashcardsService.getFlashcardsForLesson(user.id, lessonId);
+  }
+
+  @Get()
+  getAll(@CurrentUser() user: User) {
+    return this.flashcardsService.getByUser(user.id);
   }
 
   @Post()

@@ -6,6 +6,7 @@ import { TopicsService } from '../topics/topics.service';
 import { UserResponseDto } from '../auth/dto/user-response.dto';
 import { SaveTopicsDto } from './dto/save-topics.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { User } from './user.entity';
 import { Topic } from '../topics/topic.entity';
 
@@ -51,5 +52,18 @@ export class UsersController {
   ): Promise<UserResponseDto> {
     const updated = await this.usersService.updateProfile(user.id, dto);
     return UserResponseDto.from(updated);
+  }
+
+  @Get('settings')
+  getSettings(@CurrentUser() user: User) {
+    return this.usersService.getSettings(user.id);
+  }
+
+  @Patch('settings')
+  updateSettings(
+    @CurrentUser() user: User,
+    @Body() dto: UpdateSettingsDto,
+  ) {
+    return this.usersService.updateSettings(user.id, dto);
   }
 }

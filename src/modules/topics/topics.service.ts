@@ -32,6 +32,16 @@ export class TopicsService {
     return userTopics.map((ut) => ut.topic);
   }
 
+  async getUserIdsWithTopics(): Promise<string[]> {
+    const rows = await this.userTopicRepository
+      .createQueryBuilder('ut')
+      .select('DISTINCT ut.user_id', 'userId')
+      .getRawMany();
+    return rows.map(
+      (r: { userId?: string; userid?: string }) => r.userId ?? r.userid,
+    );
+  }
+
   async saveUserTopics(userId: string, topicIds: string[]): Promise<Topic[]> {
     await this.userTopicRepository.delete({ userId });
     if (topicIds.length === 0) return [];

@@ -2,6 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Bookmark } from './bookmark.entity';
+import { PaginationDto } from '../../common/dto/pagination.dto';
+
+export interface BookmarkListItem {
+  id: string;
+  lesson_id: string;
+  created_at: Date;
+  lesson: { id: string; title: string } | null;
+}
 
 @Injectable()
 export class BookmarksService {
@@ -10,8 +18,31 @@ export class BookmarksService {
     private readonly bookmarkRepository: Repository<Bookmark>,
   ) {}
 
-  async getByUser(userId: string): Promise<Bookmark[]> {
-    return this.bookmarkRepository.find({ where: { userId } });
+  async findPage(userId: string, pagination: PaginationDto): Promise<{
+    items: BookmarkListItem[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const { page, limit } = pagination;
+    const [rows, total] = await this.bookmarkRepository.findAndCount({
+      where: { userId },
+      relations: ['lesson'],
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    const items: BookmarkListItem[] = rows.map((b) => ({
+      id: b.id,
+      lesson_id: b.lessonId,
+      created_at: b.createdAt,
+      lesson: b.lesson
+        ? { id: b.lesson.id, title: b.lesson.title }
+        : null,
+    }));
+
+    return { items, total, page, limit };
   }
 
   async add(userId: string, lessonId: string): Promise<Bookmark> {
@@ -24,11 +55,25 @@ export class BookmarksService {
     return this.bookmarkRepository.save(bookmark);
   }
 
-  async remove(id: string, userId: string): Promise<void> {
-    const bookmark = await this.bookmarkRepository.findOne({
-      where: { id, userId },
-    });
-    if (!bookmark) throw new NotFoundException('Bookmark not found');
-    await this.bookmarkRepository.remove(bookmark);
+  async removeByLesson(userId: string, lessonId: string): Promise<void> {
+    const result = await this.bookmarkRepository.delete({ userId, lessonId });
+    if (!result.affected) {
+      throw new NotFoundException('Bookmark not found');
+    }
+  }
+
+  async removeById(userId: string, id: string): Promise<void> {
+    const result = await this.bookmarkRepository.delete({ userId, id });
+    if (!result.affected) {
+      throw new NotFoundException('Bookmark not found');
+    }
+  }
+
+  async removeByIdOrLesson(userId: string, value: string): Promise<void> {
+    const byId = await this.bookmarkRepository.delete({ userId, id: value });
+    if (byId.affected) return;
+    const byLesson = await this.bookmarkRepository.delete({ userId, lessonId: value });
+    if (byLesson.affected) return;
+    throw new NotFoundException('Bookmark not found');
   }
 }

@@ -30,6 +30,9 @@ export class UserStreak {
   @Column({ name: 'last_activity_date', type: 'date', nullable: true })
   lastActivityDate: Date | null;
 
+  @Column({ name: 'grace_used_on_date', type: 'date', nullable: true })
+  graceUsedOnDate: Date | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 

@@ -1,4 +1,4 @@
 export default () => ({
   apiKey: process.env.GEMINI_API_KEY,
-  model: 'gemini-1.5-flash',
+  model: (process.env.GEMINI_MODEL || 'gemini-2.5-flash').trim() || 'gemini-2.5-flash',
 });

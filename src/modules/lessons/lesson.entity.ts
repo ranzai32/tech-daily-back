@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { SkillLevel } from '../../common/enums/skill-level.enum';
 import { Topic } from '../topics/topic.entity';
+import { LessonInteractivePayload } from './lesson-interactive.types';
 
 @Entity('lessons')
 export class Lesson {
@@ -34,6 +35,9 @@ export class Lesson {
   @Column({ name: 'source_url', length: 2048, nullable: true })
   sourceUrl: string | null;
 
+  @Column({ name: 'source_urls', type: 'jsonb', nullable: true })
+  sourceUrls: string[] | null;
+
   @Column({
     name: 'difficulty',
     type: 'enum',
@@ -47,6 +51,24 @@ export class Lesson {
 
   @Column({ name: 'is_published', default: false })
   isPublished: boolean;
+
+  @Column({ name: 'reviewed_at', type: 'timestamptz', nullable: true })
+  reviewedAt: Date | null;
+
+  @Column({ name: 'published_at', type: 'timestamptz', nullable: true })
+  publishedAt: Date | null;
+
+  @Column({ name: 'rejection_reason', type: 'text', nullable: true })
+  rejectionReason: string | null;
+
+  @Column({ name: 'curated_for_user_id', type: 'uuid', nullable: true })
+  curatedForUserId: string | null;
+
+  @Column({ name: 'flashcards_payload', type: 'jsonb', nullable: true })
+  flashcardsPayload: { question: string; answer: string }[] | null;
+
+  @Column({ name: 'interactive_payload', type: 'jsonb', nullable: true })
+  interactivePayload: LessonInteractivePayload | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
